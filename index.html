@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="VIP25 3D Studio — explore, orient and customize the VIP25 logo in real time.">
+  <meta name="theme-color" content="#4CAF50">
+  <title>VIP25 · 3D Studio</title>
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234CAF50'/%3E%3Cpath d='M32 9 55 32 32 55 9 32Z' fill='%23D4AF37'/%3E%3Cpath d='M32 20 44 32 32 44 20 32Z' fill='%232E7D32'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Sora:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css">
+
+  <script>
+    try {
+      if (localStorage.getItem('vip25-viewer-theme') === 'dark') document.documentElement.dataset.theme = 'dark';
+    } catch (error) {}
+  </script>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <div id="viewer" role="application" aria-label="Interactive 3D logo viewer"></div>
+
+  <header class="bar">
+    <div class="panel brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div class="brand-text">
+        <strong>VIP<span>25</span></strong>
+        <small>3D Studio</small>
+      </div>
+    </div>
+
+    <div class="panel actions" role="toolbar" aria-label="Studio controls">
+      <button id="spinBtn" class="tool is-on" title="Toggle auto-spin (Space)">Pause spin</button>
+      <button id="resetBtn" class="tool" title="Reset the view (R)">Reset view</button>
+      <button id="viewsBtn" class="tool views-btn" aria-expanded="false" aria-controls="viewsDock" title="Camera views and model rotation (V)">Views</button>
+      <button id="customBtn" class="tool" aria-expanded="false" aria-controls="panel" title="Customize the logo (C)">Customize</button>
+      <button id="shotBtn" class="tool" title="Save a PNG image (S)">Save PNG</button>
+      <button id="themeBtn" class="tool" title="Toggle light and dark theme (T)">Dark theme</button>
+      <button id="helpBtn" class="tool" title="Shortcuts and gestures (H)">Help</button>
+      <button id="fullscreenBtn" class="tool primary" title="Toggle fullscreen (F)">Fullscreen</button>
+    </div>
+  </header>
+
+  <aside id="viewsDock" class="panel dock" aria-label="Camera views and model orientation">
+    <div class="dock-head">
+      <h2>Stage</h2>
+      <button id="dockClose" class="icon-btn dock-close" aria-label="Close stage panel">×</button>
+    </div>
+
+    <section class="dock-section">
+      <h3>Camera view</h3>
+      <div class="view-grid" role="group" aria-label="Camera views">
+        <button data-view="front" aria-pressed="false" title="Front view (1)">Front</button>
+        <button data-view="back" aria-pressed="false" title="Back view (2)">Back</button>
+        <button data-view="left" aria-pressed="false" title="Left view (3)">Left</button>
+        <button data-view="right" aria-pressed="false" title="Right view (4)">Right</button>
+        <button data-view="top" aria-pressed="false" title="Top view (5)">Top</button>
+        <button data-view="bottom" aria-pressed="false" title="Bottom view (6)">Bottom</button>
+        <button data-view="iso" class="wide" aria-pressed="true" title="Isometric view (7)">Isometric</button>
+      </div>
+    </section>
+
+    <section class="dock-section">
+      <h3>Model rotation</h3>
+      <div class="rotate-grid" role="group" aria-label="Rotate the model in 90 degree steps">
+        <button data-rotate="y:1" aria-label="Rotate the model 90 degrees left" title="Yaw left">Yaw ↺</button>
+        <button data-rotate="y:-1" aria-label="Rotate the model 90 degrees right" title="Yaw right">Yaw ↻</button>
+        <button data-rotate="x:1" aria-label="Tilt the model up 90 degrees" title="Tilt up">Tilt ↑</button>
+        <button data-rotate="x:-1" aria-label="Tilt the model down 90 degrees" title="Tilt down">Tilt ↓</button>
+        <button data-rotate="z:1" aria-label="Roll the model 90 degrees left" title="Roll left">Roll ↺</button>
+        <button data-rotate="z:-1" aria-label="Roll the model 90 degrees right" title="Roll right">Roll ↻</button>
+      </div>
+      <button id="resetModelBtn" class="subtle" title="Reset the model rotation">Reset rotation</button>
+    </section>
+
+    <p class="dock-note">Views move the camera. Rotation turns the logo itself.</p>
+  </aside>
+
+  <aside id="panel" class="panel drawer" aria-label="Customize the logo">
+    <div class="drawer-head">
+      <div>
+        <h2>Customize</h2>
+        <p>Colors, finish, lights and backdrop</p>
+      </div>
+      <button id="panelClose" class="icon-btn" aria-label="Close customize panel">×</button>
+    </div>
+
+    <h3>Presets</h3>
+    <div class="chips">
+      <button data-preset="original">Original</button>
+      <button data-preset="gold">Royal gold</button>
+      <button data-preset="emerald">Emerald</button>
+      <button data-preset="chrome">Chrome</button>
+      <button data-preset="matte">Matte</button>
+      <button data-preset="neon">Neon glow</button>
+    </div>
+
+    <h3>Color</h3>
+    <label class="row"><span>Tint color</span><input type="color" data-key="tint"></label>
+    <label class="row"><span>Color strength</span><output data-for="tintAmt"></output><input type="range" min="0" max="1" step="0.01" data-key="tintAmt"></label>
+
+    <h3>Shine</h3>
+    <label class="row"><span>Metalness</span><output data-for="metal"></output><input type="range" min="0" max="1" step="0.01" data-key="metal"></label>
+    <label class="row"><span>Roughness</span><output data-for="rough"></output><input type="range" min="0" max="1" step="0.01" data-key="rough"></label>
+    <label class="row"><span>Reflection strength</span><output data-for="envInt"></output><input type="range" min="0" max="3" step="0.05" data-key="envInt"></label>
+    <label class="row"><span>Reflection angle</span><output data-for="envRot"></output><input type="range" min="0" max="360" step="1" data-key="envRot"></label>
+    <label class="row"><span>Glow</span><output data-for="glow"></output><input type="range" min="0" max="1.5" step="0.01" data-key="glow"></label>
+    <label class="row"><span>Brightness</span><output data-for="exposure"></output><input type="range" min="0.4" max="2" step="0.01" data-key="exposure"></label>
+
+    <h3>Lights</h3>
+    <label class="row"><span>Main light</span><output data-for="keyInt"></output><input type="range" min="0" max="4" step="0.05" data-key="keyInt"></label>
+    <label class="row"><span>Green light color</span><input type="color" data-key="greenCol"></label>
+    <label class="row"><span>Green light</span><output data-for="greenInt"></output><input type="range" min="0" max="4" step="0.05" data-key="greenInt"></label>
+    <label class="row"><span>Gold light color</span><input type="color" data-key="goldCol"></label>
+    <label class="row"><span>Gold light</span><output data-for="goldInt"></output><input type="range" min="0" max="4" step="0.05" data-key="goldInt"></label>
+    <label class="row"><span>Light direction</span><output data-for="lightRot"></output><input type="range" min="0" max="360" step="1" data-key="lightRot"></label>
+
+    <h3>Background</h3>
+    <label class="row"><span>Top color</span><input type="color" data-key="bgA"></label>
+    <label class="row"><span>Edge color</span><input type="color" data-key="bgB"></label>
+    <div class="chips"><button id="bgThemeBtn">Use theme background</button></div>
+
+    <div class="foot">
+      <button id="resetAllBtn">Reset all</button>
+      <button id="copyBtn" class="primary">Copy settings</button>
+    </div>
+  </aside>
+
+  <div class="stage-dock">
+    <div class="panel pad-panel" role="group" aria-label="Pan the view">
+      <span class="pad-title">Pan</span>
+      <div class="pan-pad">
+        <button class="up" data-pan="up" aria-label="Pan up" title="Pan up (↑)">▲</button>
+        <button class="left" data-pan="left" aria-label="Pan left" title="Pan left (←)">◀</button>
+        <button class="center" data-pan="center" aria-label="Recenter the view" title="Recenter the view">●</button>
+        <button class="right" data-pan="right" aria-label="Pan right" title="Pan right (→)">▶</button>
+        <button class="down" data-pan="down" aria-label="Pan down" title="Pan down (↓)">▼</button>
+      </div>
+    </div>
+    <div class="panel zoom-panel" role="group" aria-label="Zoom">
+      <span class="pad-title">Zoom</span>
+      <button id="zoomIn" class="icon-btn" aria-label="Zoom in" title="Zoom in (+)">+</button>
+      <button id="zoomOut" class="icon-btn" aria-label="Zoom out" title="Zoom out (−)">−</button>
+    </div>
+  </div>
+
+  <div class="panel hint">
+    Drag to orbit · Right-drag to pan · Scroll to zoom · Keys 1–7 for views · Space to spin
+  </div>
+
+  <div id="toasts" class="toasts" role="status" aria-live="polite"></div>
+
+  <dialog id="help" class="help" aria-labelledby="helpTitle">
+    <div class="help-head">
+      <div>
+        <h2 id="helpTitle">Studio guide</h2>
+        <p>Navigate, orient and customize the VIP25 logo.</p>
+      </div>
+      <button id="helpClose" class="icon-btn" aria-label="Close help">×</button>
+    </div>
+    <div class="help-body">
+      <section>
+        <h3>Mouse &amp; touch</h3>
+        <dl class="guide">
+          <div><dt>Drag</dt><dd>Orbit the camera around the logo</dd></div>
+          <div><dt>Right-drag</dt><dd>Pan the view</dd></div>
+          <div><dt>Scroll / pinch</dt><dd>Zoom in and out</dd></div>
+          <div><dt>Pan pad</dt><dd>Step or hold to pan, center to recenter</dd></div>
+        </dl>
+      </section>
+      <section>
+        <h3>Keyboard</h3>
+        <dl class="guide">
+          <div><dt><kbd>Space</kbd></dt><dd>Start or pause auto-spin</dd></div>
+          <div><dt><kbd>R</kbd></dt><dd>Reset the view</dd></div>
+          <div><dt><kbd>1</kbd>–<kbd>7</kbd></dt><dd>Camera view presets</dd></div>
+          <div><dt><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd></dt><dd>Pan the view</dd></div>
+          <div><dt><kbd>+</kbd><kbd>−</kbd></dt><dd>Zoom in and out</dd></div>
+          <div><dt><kbd>C</kbd></dt><dd>Open or close the customize panel</dd></div>
+          <div><dt><kbd>S</kbd></dt><dd>Save a PNG image</dd></div>
+          <div><dt><kbd>T</kbd></dt><dd>Light or dark theme</dd></div>
+          <div><dt><kbd>F</kbd></dt><dd>Toggle fullscreen</dd></div>
+          <div><dt><kbd>H</kbd></dt><dd>Open this guide</dd></div>
+        </dl>
+      </section>
+    </div>
+  </dialog>
+
+  <div id="loader" role="status" aria-live="polite">
+    <div class="loader-mark" aria-hidden="true"></div>
+    <div class="loader-title">VIP<span>25</span></div>
+    <p class="loader-sub">3D Studio</p>
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <div id="status">Loading 3D model…</div>
+    <button id="retryBtn" class="primary" hidden>Reload page</button>
+  </div>
+
+  <noscript><div class="noscript">This 3D studio needs JavaScript enabled to run.</div></noscript>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
